@@ -300,6 +300,8 @@ var ViewTree = function (){
 
 
 
+//------------------------------------------------------------------------------------------------------------------
+
 
 function DrawPieTree(dt, id){
     var data = dt || {name:"绩效", nodes:[{name:"直达", value:20, nodes:[{name:"直达1", value:30}, {name:"直达2", value:70}]},
