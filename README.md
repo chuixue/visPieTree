@@ -4,3 +4,6 @@ Visual for tree structure use multilayer pie, base on echarts. With a specific c
 ![image](https://github.com/chuixue/visPieTree/blob/master/demo/pieTreeDemo.jpg)
 
 
+
+
+Much code is not necessary in the com_tree file, extracted in other project, just no time to normalize the code. 
