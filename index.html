@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+</head>
+<body>
+
+
+<div id="view1" style="margin:100px 250px; height: 400px; width: 600px"> </div>
+
+<script src="js/echarts.min.js"></script>
+<script src="js/com_tree.js"></script>
+
+</body>
+</html>
+
+<script language="javascript">
+
+    window.onload = function(){
+
+        DrawPieTree(null, "view1");
+
+    };
+    
+    
+    function DrawPieTree(dt, id){
+        var data = dt || {name:"绩效", nodes:[{name:"直达", value:20, nodes:[{name:"直达1", value:30}, {name:"直达2", value:70}]},
+                {name:"营销广告", value:10},
+                {name:"搜索引擎", value:60, nodes:[{name:"邮件", value:35, nodes:[{name:"企业邮件", value:15}]}, {name:"联盟", value:65}]}] };
+
+        var colorCfg = ["#87CEFA", "#58C1C0", "#23BAD7", "#F7A35C", "#8085E9", "#10B4E8", "#07C25B",
+            "#89F588", "#12AA9E", "#9C99FF", "#4F81BE", "#279F3E", "#FD5F60", "#F7DDDC",
+            "#4272C6", "#FF850A", "#8DAE00", "#67C454", "#F25C82", "#DC70D6"];
+        var colorNull = "#ddd";
+
+        // 获取一个相似颜色， 十六进制，layer表示哪个颜色做改动
+        function getColorNear(clr, layer){
+            if(layer==undefined) layer = 0;
+            layer = layer % 3;
+            var r = clr.substr(1, 2), g = clr.substr(3, 2), b = clr.substr(5, 2);
+            var c = [r, g, b], number = parseInt(c[layer], 16), f = [-1, 1][parseInt(Math.random() * 2)],
+                offset = parseInt(Math.random() * 32) * f;
+            var S = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+            number = (number + offset) % 256;
+            c[layer] = S[parseInt(number / 16)] + S[parseInt(number % 16)];
+            return "#" + c[0] + c[1] + c[2];
+        }
+
+        var T = new ViewTree(), height = ViewTree.getTreeHeight(data), rCenter = 0;
+        var series = [], R = 85 / (height - 1);
+        for(var i = 1; i< height; i++) series.push({
+            data:[],
+            type:"pie",
+            radius: [(R * (i - 1) + rCenter) + "%", (R * i + rCenter) + '%'],
+            label: {
+                normal: {
+                    position: 'inner'
+                }
+            },
+            labelLine: {
+                normal: {
+                    show: false
+                }
+            }
+        });
+
+        T.viewTreeByLayer(data, function(n){
+            if("nodes" in n){   // 检查是否配满
+                var sumC = n["nodes"].reduce(function(a, b){ a += b.value; return a; }, 0);
+                if(sumC<100)n["nodes"].push({name:"empty", value:100 - sumC, height:n.height + 1 });
+            }else{
+                if(n.height > 0 && n.height < (height-1)){  // 空子孙占位
+                    n["nodes"] = [{name: n.name, value: 100, flag:'full', height:n.height + 1 }];
+                }
+            }
+        });
+
+        // 一级节点配色
+        data['nodes'].forEach(function(d, i){
+            d['color'] = (d.name==="empty") ? colorNull : colorCfg[i % 20];
+        });
+
+        // 节点配色
+        T.viewTreeByLayer(data, function(n){
+            if(n.height==0 || !("nodes" in n))return;
+            n.nodes.forEach(function(c){
+                if(c.name=='empty') c['color'] = "#ddd";             //空白色
+                else if(c.flag=='full') c['color'] = n.color;       //子级占位同色
+                else c['color'] = getColorNear(n.color, n.height);  //子孙近似色
+            });
+        });
+
+
+        data['id'] = "root";
+        ViewTree.getLeafWeight(data);       // 获取各级最终比例
+
+        T.viewTreeByLayer(data, function(node){
+            if(node.height != 0) series[node.height - 1].data.push({
+                name: node.name==="empty" ? "空" : node.name,
+                value: (node.value * 100).toFixed(2),
+                itemStyle: {normal:{color:node.color }
+                }});
+        });
+
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: function(p){ return p.name + "<br>所占比例：" + p.value; }
+            },
+            series: series
+        };
+
+        Init3(option, id);
+    }
+
+
+    function Init3(option, id){
+        var myChart = echarts.init(document.getElementById(id));
+        myChart.setOption(option);
+        return myChart;
+    }
+    
+</script>
