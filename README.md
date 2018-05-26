@@ -6,4 +6,4 @@ Visual for tree structure use multilayer pie, base on echarts. With a specific c
 
 
 
-Much code is not necessary in the com_tree file, extracted in other project, just no time to normalize the code. 
+Much code is not necessary in the com_tree file, extracted from other project, just no time to normalize the code. 
